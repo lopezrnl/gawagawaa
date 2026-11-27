@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from 'react'
-import { DreamscapeArt, PortraitArt, UndertowArt } from '../art.jsx'
 import Modal from './Modal.jsx'
 import {
   ChevronLeftIcon,
@@ -10,40 +9,22 @@ import {
   TrashIcon,
 } from './icons.jsx'
 import { downloadDataUrl, downloadSvgAsPng, slugify } from '../lib/download.js'
-import { BUILT_IN_STUDIES } from '../lib/studies.js'
 import { useReveal } from '../lib/useReveal.js'
 import { useData, useToast, useUI } from '../state/contexts.js'
 
-const ART = {
-  portrait: PortraitArt,
-  dreamscape: DreamscapeArt,
-  undertow: UndertowArt,
-}
-
 function Artwork({ item }) {
-  if (item.kind === 'upload') {
-    return <img src={item.src} alt={item.title} loading="lazy" />
-  }
-
-  const Component = ART[item.art]
-  return Component ? <Component /> : null
+  return <img src={item.src} alt={item.title} loading="lazy" />
 }
 
 export default function Gallery() {
-  const { gallery, removeGalleryItem } = useData()
+  const { gallery, galleryReady, removeGalleryItem } = useData()
   const { openUpload } = useUI()
   const toast = useToast()
-  const [filter, setFilter] = useState('all')
   const [lightboxId, setLightboxId] = useState(null)
 
-  const allItems = useMemo(() => [...BUILT_IN_STUDIES, ...gallery], [gallery])
-  const visible = useMemo(() => {
-    if (filter === 'studies') return BUILT_IN_STUDIES
-    if (filter === 'yours') return gallery
-    return allItems
-  }, [filter, gallery, allItems])
+  const visible = useMemo(() => gallery, [gallery])
 
-  useReveal([visible.length, filter])
+  useReveal([visible.length])
 
   const current = visible.find((item) => item.id === lightboxId) || null
   const currentIndex = current ? visible.indexOf(current) : -1
@@ -94,19 +75,13 @@ export default function Gallery() {
     setLightboxId(visible[next].id)
   }
 
-  const filters = [
-    { id: 'all', label: 'All', count: allItems.length },
-    { id: 'studies', label: 'Studies', count: BUILT_IN_STUDIES.length },
-    { id: 'yours', label: 'Yours', count: gallery.length },
-  ]
-
   return (
     <section id="gallery" className="section section-line" aria-labelledby="gallery-title">
       <div className="container">
         <header className="section-head gallery-head" data-reveal>
           <div>
             <p className="kicker">
-              <span>04</span> Gallery
+              <span>01</span> Gallery
             </p>
             <h2 id="gallery-title">Studies in blue</h2>
             <p className="lead">
@@ -121,26 +96,15 @@ export default function Gallery() {
         </header>
 
         <div className="gallery-bar">
-          <div className="chips" role="group" aria-label="Filter studies">
-            {filters.map((option) => (
-              <button
-                key={option.id}
-                type="button"
-                className={`chip-btn ${filter === option.id ? 'is-active' : ''}`}
-                aria-pressed={filter === option.id}
-                onClick={() => setFilter(option.id)}
-              >
-                {option.label}
-                <span className="chip-count mono">{option.count}</span>
-              </button>
-            ))}
-          </div>
           <p className="gallery-count mono">
             {visible.length} {visible.length === 1 ? 'study' : 'studies'}
+            <span className="gallery-local-note"><span aria-hidden="true">🐧</span> kept on this device</span>
           </p>
         </div>
 
-        {visible.length === 0 ? (
+        {!galleryReady ? (
+          <div className="empty-state" role="status">Loading your local gallery…</div>
+        ) : visible.length === 0 ? (
           <div className="empty-state">
             <p>Your gallery is empty — for now.</p>
             <button type="button" className="btn btn-primary btn-small" onClick={openUpload}>
@@ -150,14 +114,12 @@ export default function Gallery() {
         ) : (
           <div className="masonry">
             {visible.map((item) => (
-              <figure className={`pin ${item.kind === 'upload' ? 'is-upload' : ''}`} key={item.id} data-reveal>
+              <figure className="pin is-upload" key={item.id} data-reveal>
                 <div
                   className="pin-media"
                   style={{
                     aspectRatio:
-                      item.kind === 'upload'
-                        ? `${item.width || 4} / ${item.height || 3}`
-                        : item.ratio,
+                      `${item.width || 4} / ${item.height || 3}`,
                   }}
                 >
                   <button
@@ -191,7 +153,7 @@ export default function Gallery() {
                     >
                       <ExpandIcon />
                     </button>
-                    {item.kind === 'upload' && (
+                    {(
                       <button
                         type="button"
                         className="icon-btn icon-btn-danger"
@@ -210,7 +172,7 @@ export default function Gallery() {
                     <p className="pin-title">{item.title}</p>
                     <p className="pin-sub mono">{item.caption}</p>
                   </div>
-                  {item.kind === 'upload' && <span className="pin-badge mono">yours</span>}
+                  <span className="pin-badge mono">yours</span>
                 </figcaption>
               </figure>
             ))}

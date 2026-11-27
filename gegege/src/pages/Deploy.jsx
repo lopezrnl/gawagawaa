@@ -1,65 +1,51 @@
 import { Link } from 'react-router-dom'
-import { ArrowUpRightIcon, CheckIcon } from '../components/icons.jsx'
 import { useReveal } from '../lib/useReveal.js'
 
-const CHECKS = [
-  'Vite production build, ready to ship',
-  'Vercel routing already configured',
-  'No environment variables required',
-  'Archive stays in each visitor’s browser',
+const FAVORITES = [
+  { symbol: '🐧', label: 'Favorite animal', value: 'Penguins', note: 'A little awkward, very loyal, and always better in a pair.' },
+  { symbol: '◉', label: 'Favorite color', value: 'Blue', note: 'The color of the sea, quiet mornings, and thoughts that linger.' },
+  { symbol: '☁', label: 'Favorite feeling', value: 'A peaceful kind of quiet', note: 'The sort where nobody has to say anything to feel understood.' },
 ]
+const PENGUINS = ['🐧', '🐧', '🐧', '🐧', '🐧', '🐧', '🐧', '🐧', '🐧', '🐧', '🐧', '🐧', '🐧', '🐧', '🐧', '🐧', '🐧', '🐧']
 
 export default function Deploy() {
   useReveal()
 
   return (
-    <div className="deploy-page">
+    <div className="deploy-page about-her-page">
       <header className="page-heading" data-reveal>
-        <p className="kicker"><span>01</span> About this little space</p>
-        <h1>A page waiting<br /><em>for a home.</em></h1>
+        <p className="kicker"><span>01</span> A little about her</p>
+        <h1>Small things<br /><em>that feel like her.</em></h1>
         <p className="lead">
-          Blank is a small character study built to feel like a quiet place you
-          can return to. Here is what is under the surface.
+          A few of her favorite things, gathered here like keepsakes. The kind
+          of details that make a person feel a little more real.
         </p>
       </header>
 
-      <div className="deploy-page-grid">
-        <section className="deploy-manifest" data-reveal>
-          <p className="panel-title">The little details</p>
-          <ul>
-            {CHECKS.map((check) => <li key={check}><CheckIcon />{check}</li>)}
-          </ul>
-          <div className="deploy-tech">
-            <span className="mono">BUILT WITH</span>
-            <div><b>React</b><b>Vite</b><b>SVG</b><b>Vercel</b></div>
-          </div>
-        </section>
+      <section className="favorites-grid" aria-label="Her favorite things">
+        {FAVORITES.map((favorite, index) => (
+          <article className="favorite-card" data-reveal key={favorite.label}>
+            <span className="favorite-symbol" aria-hidden="true">{favorite.symbol}</span>
+            <p className="mono favorite-label">0{index + 1} / {favorite.label}</p>
+            <h2>{favorite.value}</h2>
+            <p>{favorite.note}</p>
+          </article>
+        ))}
+      </section>
 
-        <section className="deploy-card" data-reveal>
-          <div className="deploy-card-head">
-            <span className="mono">deployment slot</span>
-            <span className="profile-status"><i /> READY</span>
-          </div>
-          <div className="deploy-card-body">
-            <span className="vercel-badge"><span className="vercel-mark">▲</span></span>
-            <h2>Ready to leave<br />the page.</h2>
-            <p>Import this project into Vercel, keep the detected defaults, and let the story find a home.</p>
-            <a className="btn btn-primary btn-wide" href="https://vercel.com/new" target="_blank" rel="noreferrer">
-              Connect to Vercel <ArrowUpRightIcon />
-            </a>
-            <p className="mono deploy-config">vercel.json · vite · dist</p>
-          </div>
-        </section>
+      <div className="penguin-parade" aria-label="A little parade of penguins">
+        {PENGUINS.map((penguin, index) => (
+          <span key={index} aria-hidden="true" style={{ '--penguin-index': index }}>{penguin}</span>
+        ))}
       </div>
 
-      <div className="deploy-local-note" data-reveal>
-        <span className="mono">A SMALL NOTE ABOUT PRIVACY</span>
+      <aside className="about-her-note" data-reveal>
+        <span className="mono">A LITTLE DETAIL</span>
         <p>
-          The passphrase gate is a front-end welcome screen, not secure
-          authentication. The archive is local to this browser and is not
-          uploaded or shared.
+          Maybe it is the penguins, maybe it is the blue — or maybe the best
+          parts of someone are the little things you remember without trying.
         </p>
-      </div>
+      </aside>
 
       <Link className="back-to-story" to="/app/story">← Back to the story</Link>
     </div>

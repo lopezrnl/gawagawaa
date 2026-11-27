@@ -3,13 +3,17 @@ import { DataContext } from './contexts.js'
 import { downloadText } from '../lib/download.js'
 import {
   clearArchive,
+  clearGalleryLocal,
+  DEFAULT_PROFILE,
   DEFAULT_PREFS,
   loadFragments,
-  loadGallery,
+  loadGalleryLocal,
+  loadProfileLocal,
   loadLetters,
   loadPrefs,
   saveFragments,
-  saveGallery,
+  saveGalleryLocal,
+  saveProfileLocal,
   saveLetters,
   savePrefs,
   SEED_FRAGMENTS,
@@ -28,7 +32,9 @@ const uid = () =>
 export default function DataProvider({ children }) {
   const [letters, setLetters] = useState(loadLetters)
   const [fragments, setFragments] = useState(loadFragments)
-  const [gallery, setGallery] = useState(loadGallery)
+  const [gallery, setGallery] = useState([])
+  const [galleryReady, setGalleryReady] = useState(false)
+  const [profile, setProfile] = useState(DEFAULT_PROFILE)
   const [prefs, setPrefs] = useState(loadPrefs)
 
   useEffect(() => {
@@ -40,8 +46,24 @@ export default function DataProvider({ children }) {
   }, [fragments])
 
   useEffect(() => {
-    saveGallery(gallery)
-  }, [gallery])
+    let active = true
+    loadGalleryLocal().then(async (items) => {
+      if (!active) return
+      setGallery(items)
+      setGalleryReady(true)
+      // Persist migrated data to IndexedDB.
+      if (items.length) await saveGalleryLocal(items)
+    })
+    return () => { active = false }
+  }, [])
+
+  useEffect(() => {
+    let active = true
+    loadProfileLocal().then((value) => {
+      if (active) setProfile(value)
+    })
+    return () => { active = false }
+  }, [])
 
   useEffect(() => {
     savePrefs(prefs)
@@ -79,9 +101,9 @@ export default function DataProvider({ children }) {
   }, [])
 
   const addGalleryItems = useCallback(
-    (items) => {
+    async (items) => {
       const next = [...items, ...gallery].slice(0, MAX_UPLOADS)
-      if (!saveGallery(next)) return false
+      if (!(await saveGalleryLocal(next))) return false
       setGallery(next)
       return true
     },
@@ -89,9 +111,9 @@ export default function DataProvider({ children }) {
   )
 
   const removeGalleryItem = useCallback(
-    (id) => {
+    async (id) => {
       const next = gallery.filter((item) => item.id !== id)
-      saveGallery(next)
+      await saveGalleryLocal(next)
       setGallery(next)
     },
     [gallery],
@@ -99,6 +121,14 @@ export default function DataProvider({ children }) {
 
   const setPreference = useCallback((key, value) => {
     setPrefs((previous) => ({ ...previous, [key]: value }))
+  }, [])
+
+  const updateProfile = useCallback((patch) => {
+    setProfile((previous) => {
+      const next = { ...previous, ...patch }
+      saveProfileLocal(next)
+      return next
+    })
   }, [])
 
   const exportArchive = useCallback(() => {
@@ -117,6 +147,7 @@ export default function DataProvider({ children }) {
           letters,
           fragments,
           gallery,
+          profile,
           prefs,
         },
         null,
@@ -125,13 +156,16 @@ export default function DataProvider({ children }) {
       'blank-archive.json',
       'application/json',
     )
-  }, [letters, fragments, gallery, prefs])
+  }, [letters, fragments, gallery, profile, prefs])
 
-  const resetArchive = useCallback(() => {
+  const resetArchive = useCallback(async () => {
+    await clearGalleryLocal()
     clearArchive()
     setLetters(SEED_LETTERS)
     setFragments(SEED_FRAGMENTS)
     setGallery([])
+    setProfile(DEFAULT_PROFILE)
+    await saveProfileLocal(DEFAULT_PROFILE)
     setPrefs(DEFAULT_PREFS)
   }, [])
 
@@ -140,6 +174,8 @@ export default function DataProvider({ children }) {
       letters,
       fragments,
       gallery,
+      galleryReady,
+      profile,
       prefs,
       addLetter,
       deleteLetter,
@@ -147,6 +183,7 @@ export default function DataProvider({ children }) {
       deleteFragment,
       addGalleryItems,
       removeGalleryItem,
+      updateProfile,
       setPreference,
       exportArchive,
       resetArchive,
@@ -157,6 +194,8 @@ export default function DataProvider({ children }) {
       letters,
       fragments,
       gallery,
+      galleryReady,
+      profile,
       prefs,
       addLetter,
       deleteLetter,
@@ -164,6 +203,7 @@ export default function DataProvider({ children }) {
       deleteFragment,
       addGalleryItems,
       removeGalleryItem,
+      updateProfile,
       setPreference,
       exportArchive,
       resetArchive,

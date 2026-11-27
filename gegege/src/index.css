@@ -181,3 +181,43 @@ html.no-glow .cursor-glow {
     transition-duration: 0.001ms !important;
   }
 }
+
+/* Product-wide visual system: quieter surfaces, clearer hierarchy, consistent controls. */
+:root {
+  --ink-950: #070b12;
+  --ink-900: #0b111b;
+  --ink-800: #101a28;
+  --ink-700: #172437;
+  --panel: rgba(17, 27, 42, 0.78);
+  --panel-solid: #111b2a;
+  --blue: #5c91f5;
+  --blue-soft: #a9c7ff;
+  --cyan: #73d7dc;
+  --text: #d1d9e6;
+  --text-dim: #91a0b5;
+  --text-bright: #f3f6fb;
+  --line: rgba(173, 193, 222, 0.12);
+  --line-strong: rgba(173, 193, 222, 0.24);
+  --shadow-soft: 0 24px 64px -32px rgba(0, 0, 0, 0.8);
+}
+
+body {
+  background:
+    radial-gradient(900px 540px at 10% -12%, rgba(65, 112, 190, 0.13), transparent 64%),
+    radial-gradient(850px 580px at 94% 0%, rgba(70, 138, 143, 0.07), transparent 62%),
+    var(--ink-900);
+}
+
+button, a, input, textarea { -webkit-tap-highlight-color: transparent; }
+button { transition: background-color .18s ease, border-color .18s ease, color .18s ease, transform .18s ease; }
+
+@media (max-width: 720px) {
+  .gallery-head { align-items: flex-start; flex-direction: column; }
+  .gallery-head > .btn { width: 100%; }
+  .masonry { columns: 2; column-gap: 12px; }
+  .pin { margin-bottom: 12px; }
+}
+
+@media (max-width: 420px) {
+  .masonry { columns: 1; }
+}

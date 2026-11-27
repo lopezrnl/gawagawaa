@@ -76,7 +76,7 @@ export default function SiteNav() {
 
       <div className="container nav-inner">
         <Link className="brand" to="/" aria-label="Blank, back home">
-          <span className="brand-mark">B</span>
+          <span className="brand-mark" aria-hidden="true">🐧</span>
           <span className="brand-word">blank</span>
         </Link>
 

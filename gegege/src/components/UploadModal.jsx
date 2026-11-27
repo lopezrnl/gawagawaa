@@ -111,9 +111,9 @@ export default function UploadModal() {
         })
       }
 
-      const saved = addGalleryItems(items)
+      const saved = await addGalleryItems(items)
       if (!saved) {
-        toast('Local storage is full — delete a study and try again', 'error')
+        toast('Could not save locally — check browser storage permissions', 'error')
         return
       }
 

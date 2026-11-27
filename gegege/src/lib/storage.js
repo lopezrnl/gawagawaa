@@ -11,6 +11,141 @@ export const DEFAULT_PREFS = {
   glow: true,
 }
 
+const GALLERY_DB = 'blank-local-gallery'
+const GALLERY_STORE = 'items'
+const PROFILE_STORE = 'profile'
+export const DEFAULT_PROFILE = {
+  storyImage: '',
+  storyLead: 'Blank was found on an empty page — a name-shaped absence the tide kept returning. This is the story so far.',
+  storySoFarTitle: 'The story keeps its own time.',
+  storySoFarText: 'Nothing here is finished. The tide is still deciding what to leave behind.',
+  storyParts: [
+    'She woke on a page with no ink on it. The room was white, the window was white, and the only blue in the world was the vein at her wrist. She counted it until someone finally wrote her name in the corner — and then crossed it out.',
+    'The sea found her before anyone else did. It climbed the stairs, filled the hallway, and left a small silver fish in her palm. She has kept it in a glass of water ever since, and it has never once needed to breathe.',
+    'Now she lives at the edge of the page, where the ink runs out. She is not waiting to be finished. She is deciding, slowly, what she would like to become — and the blue is patient with her.',
+  ],
+  betweenTitle: 'There is more than the story.',
+  betweenText: 'A dossier, little studies in blue, and the things collected along the way.',
+  dossierImage: '',
+  dossierDescription: 'Everything recorded about her fits on one page. That is not a coincidence.',
+  dossierFacts: [
+    ['Alias', 'The Unwritten'],
+    ['Age', 'Unrecorded'],
+    ['Origin', 'The White Room'],
+    ['Element', 'Tide'],
+    ['Status', 'Draft'],
+  ],
+  traits: [
+    ['Tidal calm', 'Slow to anger, impossible to hurry, and always, eventually, everywhere.'],
+    ['Blank slate', 'No past to inherit, no ending to spoil. Every morning is a first meeting.'],
+    ['Ink-stained', 'Feelings leave marks. She hides them in the margins and the blue behind her eyes.'],
+    ['Blue hour', 'Most herself between the last light and the first dark.'],
+  ],
+}
+
+function openGalleryDB() {
+  return new Promise((resolve, reject) => {
+    if (!('indexedDB' in window)) {
+      reject(new Error('IndexedDB is unavailable'))
+      return
+    }
+    const request = indexedDB.open(GALLERY_DB, 2)
+    request.onupgradeneeded = () => {
+      if (!request.result.objectStoreNames.contains(GALLERY_STORE)) {
+        request.result.createObjectStore(GALLERY_STORE, { keyPath: 'id' })
+      }
+      if (!request.result.objectStoreNames.contains(PROFILE_STORE)) {
+        request.result.createObjectStore(PROFILE_STORE)
+      }
+    }
+    request.onsuccess = () => resolve(request.result)
+    request.onerror = () => reject(request.error)
+  })
+}
+
+export async function loadProfileLocal() {
+  try {
+    const db = await openGalleryDB()
+    const stored = await new Promise((resolve, reject) => {
+      const request = db.transaction(PROFILE_STORE).objectStore(PROFILE_STORE).get('current')
+      request.onsuccess = () => resolve(request.result)
+      request.onerror = () => reject(request.error)
+    })
+    db.close()
+    return { ...DEFAULT_PROFILE, ...(stored || {}) }
+  } catch {
+    return DEFAULT_PROFILE
+  }
+}
+
+export async function saveProfileLocal(profile) {
+  try {
+    const db = await openGalleryDB()
+    await new Promise((resolve, reject) => {
+      const transaction = db.transaction(PROFILE_STORE, 'readwrite')
+      transaction.objectStore(PROFILE_STORE).put(profile, 'current')
+      transaction.oncomplete = resolve
+      transaction.onerror = () => reject(transaction.error)
+    })
+    db.close()
+    return true
+  } catch {
+    return false
+  }
+}
+
+export async function loadGalleryLocal() {
+  try {
+    const db = await openGalleryDB()
+    const items = await new Promise((resolve, reject) => {
+      const request = db.transaction(GALLERY_STORE).objectStore(GALLERY_STORE).getAll()
+      request.onsuccess = () => resolve(request.result)
+      request.onerror = () => reject(request.error)
+    })
+    db.close()
+    if (items.length) return items.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''))
+    // One-time migration from the previous localStorage gallery.
+    return loadGallery()
+  } catch {
+    return loadGallery()
+  }
+}
+
+export async function saveGalleryLocal(items) {
+  try {
+    const db = await openGalleryDB()
+    await new Promise((resolve, reject) => {
+      const transaction = db.transaction(GALLERY_STORE, 'readwrite')
+      const store = transaction.objectStore(GALLERY_STORE)
+      store.clear()
+      items.forEach((item) => store.put(item))
+      transaction.oncomplete = resolve
+      transaction.onerror = () => reject(transaction.error)
+      transaction.onabort = () => reject(transaction.error)
+    })
+    db.close()
+    try { localStorage.removeItem(STORAGE_KEYS.gallery) } catch { /* storage may be unavailable */ }
+    return true
+  } catch {
+    return false
+  }
+}
+
+export async function clearGalleryLocal() {
+  try {
+    const db = await openGalleryDB()
+    await new Promise((resolve, reject) => {
+      const transaction = db.transaction(GALLERY_STORE, 'readwrite')
+      transaction.objectStore(GALLERY_STORE).clear()
+      transaction.oncomplete = resolve
+      transaction.onerror = () => reject(transaction.error)
+    })
+    db.close()
+  } catch {
+    /* IndexedDB may be unavailable; clear the legacy copy regardless. */
+  }
+}
+
 export const SEED_LETTERS = [
   {
     id: 'seed-letter-page',

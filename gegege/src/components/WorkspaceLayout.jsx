@@ -5,23 +5,20 @@ import {
   FragmentIcon,
   GalleryIcon,
   LetterIcon,
-  SearchIcon,
 } from './icons.jsx'
-import { useUI } from '../state/contexts.js'
 
 const LINKS = [
   { to: '/app/story', label: 'The story', icon: <FragmentIcon /> },
   { to: '/app/dossier', label: 'Dossier', icon: <LetterIcon /> },
   { to: '/app/gallery', label: 'Gallery', icon: <GalleryIcon /> },
   { to: '/app/archive', label: 'Archive', icon: <ArrowUpRightIcon /> },
-  { to: '/app/deploy', label: 'About', icon: <LetterIcon /> },
+  { to: '/app/deploy', label: 'About her', icon: <LetterIcon /> },
 ]
 
 export default function WorkspaceLayout({ onLogout }) {
   const [menuOpen, setMenuOpen] = useState(false)
   const location = useLocation()
   const navigate = useNavigate()
-  const { openCommand } = useUI()
 
   useEffect(() => {
     // Dismiss the mobile drawer after route navigation (including history).
@@ -47,7 +44,7 @@ export default function WorkspaceLayout({ onLogout }) {
     <div className="workspace">
       <header className="workspace-mobilebar">
         <NavLink className="workspace-brand" to="/app/story">
-          <span className="brand-mark">B</span>
+          <span className="brand-mark" aria-hidden="true">🐧</span>
           <span>blank</span>
         </NavLink>
         <button
@@ -77,7 +74,7 @@ export default function WorkspaceLayout({ onLogout }) {
       >
         <div className="workspace-brand-block">
           <NavLink className="workspace-brand" to="/app/story">
-            <span className="brand-mark">B</span>
+            <span className="brand-mark" aria-hidden="true">🐧</span>
             <span>blank</span>
           </NavLink>
           <p className="mono">a private character study</p>
@@ -101,20 +98,6 @@ export default function WorkspaceLayout({ onLogout }) {
 
         <div className="workspace-sidebar-spacer" />
 
-        <button className="workspace-search" type="button" onClick={() => {
-          setMenuOpen(false)
-          openCommand()
-        }}>
-          <SearchIcon />
-          <span>Quick search</span>
-          <kbd>⌘K</kbd>
-        </button>
-
-        <div className="workspace-sidebar-note">
-          <span className="mono">a note to self</span>
-          <p>Not every quiet thing is empty.</p>
-        </div>
-
         <button type="button" className="workspace-logout" onClick={logout}>
           <span className="logout-glyph" aria-hidden="true">↗</span>
           Leave this space
@@ -122,20 +105,11 @@ export default function WorkspaceLayout({ onLogout }) {
       </aside>
 
       <div className="workspace-main-wrap">
-        <div className="workspace-topline">
-          <span className="mono">THE BLUE HOUR ARCHIVE</span>
-          <div className="workspace-top-actions">
-            <button type="button" className="workspace-top-search" onClick={openCommand}>
-              <SearchIcon /> <span>Search</span> <kbd>⌘K</kbd>
-            </button>
-            <span className="workspace-presence"><i /> saved in this browser</span>
-          </div>
-        </div>
         <main className="workspace-main" id="main">
           <Outlet />
           <footer className="workspace-footer">
             <span>Still being written.</span>
-            <NavLink to="/app/deploy">About this little space ↗</NavLink>
+            <NavLink to="/app/deploy">A little about her ↗</NavLink>
           </footer>
         </main>
       </div>

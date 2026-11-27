@@ -45,14 +45,8 @@ export default function Archive() {
   const {
     letters,
     fragments,
-    gallery,
-    prefs,
     deleteLetter,
     deleteFragment,
-    setPreference,
-    exportArchive,
-    resetArchive,
-    storageBytes,
   } = useData()
   const { openLetter, openFragment } = useUI()
   const toast = useToast()
@@ -83,9 +77,6 @@ export default function Archive() {
     return items.sort((a, b) => new Date(b.date) - new Date(a.date))
   }, [letters, fragments])
 
-  const studies = gallery.length + 3
-  const storageKb = Math.max(1, Math.round(storageBytes / 1024))
-  const storagePercent = Math.min(100, Math.round((storageBytes / (5 * 1024 * 1024)) * 100))
   const totalWords = letters.reduce((sum, letter) => sum + countWords(letter.body), 0)
 
   const downloadLetters = () => {
@@ -127,19 +118,13 @@ export default function Archive() {
     } else if (confirm.kind === 'fragment') {
       deleteFragment(confirm.id)
       toast('Fragment deleted')
-    } else if (confirm.kind === 'reset') {
-      resetArchive()
-      setReading(null)
-      toast('Archive reset to its first draft', 'success')
     }
 
     setConfirm(null)
   }
 
   const confirmCopy =
-    confirm?.kind === 'reset'
-      ? 'This restores the seeded letters and fragments, clears your uploads, and resets preferences. It cannot be undone.'
-      : confirm?.kind === 'letter'
+    confirm?.kind === 'letter'
         ? `“${confirm.title}” will be removed from the archive. This cannot be undone.`
         : 'This fragment will be removed from the archive. This cannot be undone.'
 
@@ -181,10 +166,6 @@ export default function Archive() {
                 <span className="mono">fragments</span>
               </div>
               <div className="archive-stat">
-                <span className="archive-stat-num">{String(studies).padStart(2, '0')}</span>
-                <span className="mono">studies</span>
-              </div>
-              <div className="archive-stat">
                 <span className="archive-stat-num">{String(totalWords).padStart(3, '0')}</span>
                 <span className="mono">words kept</span>
               </div>
@@ -206,7 +187,9 @@ export default function Archive() {
               {timeline.map((item) => (
                 <li className="timeline-item" key={`${item.type}-${item.id}`} data-reveal>
                   <span className="timeline-date mono">{formatDate(item.date)}</span>
-                  <span className={`timeline-badge badge-${item.type} mono`}>{item.type}</span>
+                  <span className={`timeline-badge badge-${item.type} mono`}>
+                    {item.type === 'chapter' ? 'story' : item.type}
+                  </span>
                   <div className="timeline-body">
                     <h3>{item.title}</h3>
                     <p>{item.excerpt}</p>
@@ -342,105 +325,9 @@ export default function Archive() {
             )}
           </section>
 
-          <section id="data" className="archive-section" aria-labelledby="data-title">
-            <header className="archive-section-head">
-              <div>
-                <p className="kicker">
-                  <span>05</span> Data
-                </p>
-                <h2 id="data-title">What this archive keeps</h2>
-              </div>
-              <span className="archive-meta mono">local only</span>
-            </header>
-
-            <div className="data-grid">
-              <div className="panel data-panel" data-reveal>
-                <h3 className="panel-title">Storage</h3>
-                <div className="storage-head">
-                  <span>{storageKb} KB used</span>
-                  <span className="mono">{storagePercent}%</span>
-                </div>
-                <div className="storage-track">
-                  <span style={{ width: `${Math.max(2, storagePercent)}%` }} />
-                </div>
-                <p className="stats-note mono">
-                  localStorage · roughly 5 MB available
-                </p>
-
-                <div className="data-actions">
-                  <button type="button" className="btn btn-primary btn-small" onClick={exportArchive}>
-                    <DownloadIcon /> Export .json
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn-ghost btn-small"
-                    onClick={downloadLetters}
-                    disabled={letters.length === 0}
-                  >
-                    <DownloadIcon /> Letters .md
-                  </button>
-                </div>
-              </div>
-
-              <div className="panel data-panel" data-reveal>
-                <h3 className="panel-title">Preferences</h3>
-
-                <button
-                  type="button"
-                  className="pref-row"
-                  role="switch"
-                  aria-checked={prefs.reduceMotion}
-                  onClick={() => setPreference('reduceMotion', !prefs.reduceMotion)}
-                >
-                  <span className={`toggle ${prefs.reduceMotion ? 'is-on' : ''}`} aria-hidden="true">
-                    <span />
-                  </span>
-                  <span className="pref-copy">
-                    <strong>Reduce motion</strong>
-                    <span>Calm the reveals, floats, and marquee.</span>
-                  </span>
-                </button>
-
-                <button
-                  type="button"
-                  className="pref-row"
-                  role="switch"
-                  aria-checked={prefs.glow}
-                  onClick={() => setPreference('glow', !prefs.glow)}
-                >
-                  <span className={`toggle ${prefs.glow ? 'is-on' : ''}`} aria-hidden="true">
-                    <span />
-                  </span>
-                  <span className="pref-copy">
-                    <strong>Ambient glow</strong>
-                    <span>A soft blue light follows the cursor.</span>
-                  </span>
-                </button>
-
-                <p className="stats-note mono">saved in this browser</p>
-              </div>
-
-              <div className="panel data-panel danger-panel" data-reveal>
-                <h3 className="panel-title">Danger zone</h3>
-                <p className="danger-copy">
-                  Reset the archive to its first draft. Your letters, fragments,
-                  uploads, and preferences will be cleared.
-                </p>
-                <button
-                  type="button"
-                  className="btn btn-danger btn-small"
-                  onClick={() => setConfirm({ kind: 'reset' })}
-                >
-                  <TrashIcon /> Reset archive
-                </button>
-              </div>
-            </div>
-
-            <p className="archive-foot-note mono">
-              Want to keep it? <Link to="/app/deploy">About this study</Link> and the
-              archive goes with it.
-            </p>
-          </section>
+          <p className="archive-foot-note mono">
+            Want to keep it? <Link to="/app/deploy">About her</Link> and the archive goes with it.
+          </p>
         </main>
       </div>
 
@@ -484,7 +371,7 @@ export default function Archive() {
       <Modal
         open={Boolean(confirm)}
         onClose={() => setConfirm(null)}
-        title={confirm?.kind === 'reset' ? 'Reset the archive?' : 'Remove this entry?'}
+        title="Remove this entry?"
         subtitle="this cannot be undone"
         size="sm"
         footer={
@@ -493,7 +380,7 @@ export default function Archive() {
               Cancel
             </button>
             <button type="button" className="btn btn-danger btn-small" onClick={handleConfirm}>
-              {confirm?.kind === 'reset' ? 'Reset everything' : 'Remove'}
+              Remove
             </button>
           </>
         }

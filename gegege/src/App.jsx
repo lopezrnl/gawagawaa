@@ -21,7 +21,7 @@ const TITLES = {
   '/app/dossier': 'The Dossier — Blank',
   '/app/gallery': 'Studies in Blue — Blank',
   '/app/archive': 'The Archive — Blank',
-  '/app/deploy': 'About this Space — Blank',
+  '/app/deploy': 'A Little About Her — Blank',
 }
 
 function ScrollManager() {

@@ -5,7 +5,7 @@ export default function SiteFooter() {
     <footer className="footer">
       <div className="container footer-inner">
         <div className="footer-brand">
-          <span className="brand-mark brand-mark-small">B</span>
+          <span className="brand-mark brand-mark-small" aria-hidden="true">🐧</span>
           <p>
             Blank — a character study in blue.
             <span className="mono footer-sub">Still being written.</span>
